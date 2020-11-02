@@ -31,7 +31,7 @@ run;
 
 data fh;
 input x 4.2;                 
-/*±äÁ¿ºóµÄ4.2±íÊ¾±äÁ¿xµÄ¿í¶È¹²4Î»£¬ÆäÖĞĞ¡Êıµã2Î»*/
+/*å˜é‡åçš„4.2è¡¨ç¤ºå˜é‡xçš„å®½åº¦å…±4ä½ï¼Œå…¶ä¸­å°æ•°ç‚¹2ä½*/
 cards;
 12
 2.1
@@ -63,9 +63,9 @@ data city;
 input city$ code$;
 format city $6. code $2.; 
 cards;
-±±¾©ÊĞ 110000
-Ìì½òÊĞ 120000
-ÉÏº£ÊĞ 310000
+åŒ—äº¬å¸‚ 110000
+å¤©æ´¥å¸‚ 120000
+ä¸Šæµ·å¸‚ 310000
 ;
 proc print;
 run;
@@ -133,8 +133,8 @@ run;
 data fh;
 input name&:$50. city&:$50.; 
 cards;
-Peter Paker  É½¶«Ê¡ ÅîÀ³ÊĞ  
-Ross Geller  É½¶«Ê¡ ÇàµºÊĞ ÊĞÄÏÇø  
+Peter Paker  å±±ä¸œçœ è“¬è±å¸‚  
+Ross Geller  å±±ä¸œçœ é’å²›å¸‚ å¸‚å—åŒº  
 ;
 proc print;
 run;
@@ -181,9 +181,9 @@ proc print;
 run;
 
 libname phone "d:\sasfile";    
-/*Ö¸¶¨SASÂß¼­¿âmydir Óë"g:\mysasfile"¹ØÁªÆğÀ´*/
+/*æŒ‡å®šSASé€»è¾‘åº“mydir ä¸"g:\mysasfile"å…³è”èµ·æ¥*/
 data phone.fh;                 
-/*dataÓï¾äÖ¸¶¨½¨Á¢ÃûÎªfhµÄÊı¾İ¼¯£¬·ÅÔÚmydirÎÄ¼ş¼Ğ*/
+/*dataè¯­å¥æŒ‡å®šå»ºç«‹åä¸ºfhçš„æ•°æ®é›†ï¼Œæ”¾åœ¨mydiræ–‡ä»¶å¤¹*/
 input id day: yymmdd8. city:$20.;    
 format day yymmddp10.;  
 cards;
@@ -374,7 +374,7 @@ run;
 
 proc format;
 invalue $age low-<40 ="<40" 40-high =">=40";
-value fws 1="ÄĞ" 2="Å®";
+value fws 1="ç”·" 2="å¥³";
 data base;
 input id  name$  gender  age:$age.;
 format  gender fws.;
@@ -406,7 +406,7 @@ run;
 
 data qwqe;
 set base;
-if gender= 2 and age=">=40";/*genderºóÎªÉ¶²»ÄÜÊÇ"Å®"*/
+if gender= 2 and age=">=40";/*genderåä¸ºå•¥ä¸èƒ½æ˜¯"å¥³"*/
 proc print;
 run;
 
@@ -461,7 +461,7 @@ proc print;
 run;
 
 proc format;
-invalue $g 1="ÄĞ" 2="Å®";
+invalue $g 1="ç”·" 2="å¥³";
 value a low-<40="<40" 40-high=">=40";
 data base;
 input id name$ gender:$g10. age;
@@ -476,7 +476,7 @@ proc print;
 run;
 
 proc format;
-invalue $g 1="ÄĞ" 2="Å®";
+invalue $g 1="ç”·" 2="å¥³";
 value a low-39="<40"?40-high=">=40";
 data base;
 input id?name$?gender$?age;
@@ -521,62 +521,62 @@ run;
 
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
-value ss 1="ÄĞ" 2="Å®";
-value mm 1="ÒÑ»é" 2="Î´»é";
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
+value ss 1="ç”·" 2="å¥³";
+value mm 1="å·²å©š" 2="æœªå©š";
 data as;
 set bb;
 proc tabulate formchar=" ----------" noseps;
 class g sex marriage;
-table g=""all,sex*marriage/nocellmerge box="×é±ğ";
-label g="×é±ğ" sex="ĞÔ±ğ" marriage="»éÒö";
-keylabel n="ÀıÊı";
-format g gg. sex ss. marriage mm.;/*ÓĞ¸öÏ¸½ÚÃ»´¦Àíµô*/
+table g=""all,sex*marriage/nocellmerge box="ç»„åˆ«";
+label g="ç»„åˆ«" sex="æ€§åˆ«" marriage="å©šå§»";
+keylabel n="ä¾‹æ•°";
+format g gg. sex ss. marriage mm.;/*æœ‰ä¸ªç»†èŠ‚æ²¡å¤„ç†æ‰*/
 run;
 
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
-value ss 1="ÄĞ" 2="Å®" ;
-value mm 1="ÒÑ»é" 2="Î´»é";       
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
+value ss 1="ç”·" 2="å¥³" ;
+value mm 1="å·²å©š" 2="æœªå©š";       
 data aaaaa;
 set bb;
 format g gg. sex ss. marriage mm.;
 proc tabulate;
 class g sex marriage;
-table g='',sex=''*marriage='';/*ÎªÉ¶µ¥ÒıºÅ¾Í¿ÉÒÔÁË*/
-keylabel N="ÀıÊı" ;
+table g='',sex=''*marriage='';/*ä¸ºå•¥å•å¼•å·å°±å¯ä»¥äº†*/
+keylabel N="ä¾‹æ•°" ;
 run;
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
-value ss 1="ÄĞ" 2="Å®";
-value mm 1="ÒÑ»é" 2="Î´»é";
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
+value ss 1="ç”·" 2="å¥³";
+value mm 1="å·²å©š" 2="æœªå©š";
 data as;
 set bb;
 format g gg. sex ss. marriage mm.;
 proc tabulate formchar=" ----------" noseps;
 class sex marriage g;
-table sex="ĞÔ±ğ" marriage="»éÒö",(g=""all="ºÏ¼Æ")*(n rowpctn);
+table sex="æ€§åˆ«" marriage="å©šå§»",(g=""all="åˆè®¡")*(n rowpctn);
 label  rts=10 indent=3;
-keylabel n="ÀıÊı" rowpctn="±ÈÀı";
+keylabel n="ä¾‹æ•°" rowpctn="æ¯”ä¾‹";
 run;
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
-value ss 1="ÄĞ" 2="Å®" ;
-value mm 1="ÒÑ»é" 2="Î´»é";       
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
+value ss 1="ç”·" 2="å¥³" ;
+value mm 1="å·²å©š" 2="æœªå©š";       
 data a;
 set bb;
 format g gg. sex ss. marriage mm.;
 proc tabulate;
 class  sex marriage g;
-table (sex  marriage),(g="" all="ºÏ¼Æ")*(n rowpctn);
-keylabel n="ÀıÊı" rowpctn="±ÈÀı";
+table (sex  marriage),(g="" all="åˆè®¡")*(n rowpctn);
+keylabel n="ä¾‹æ•°" rowpctn="æ¯”ä¾‹";
 run;
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
 data a;
 set bb;
 format g gg.;
@@ -589,7 +589,7 @@ run;
 
 
 proc format;
-value gg 1="ÊÔÑé×é" 2="¶ÔÕÕ×é";
+value gg 1="è¯•éªŒç»„" 2="å¯¹ç…§ç»„";
 data a;
 set bb;
 format g gg.;
@@ -597,10 +597,10 @@ proc tabulate;
 class   g;
 var TC TG HDL LDL; 
 table (TC TG HDL LDL)*(n mean median std qrange),(g="");
-keylabel n="ÀıÊı" mean="¾ùÊı" std="±ê×¼²î" median="ÖĞÎ»Êı" qrange="ËÄ·ÖÎ»Êı¼ä¾à";                         
+keylabel n="ä¾‹æ•°" mean="å‡æ•°" std="æ ‡å‡†å·®" median="ä¸­ä½æ•°" qrange="å››åˆ†ä½æ•°é—´è·";                         
 run;
 
-/*sas-3 µÄµÚ7Ìâ*/
+/*sas-3 çš„ç¬¬7é¢˜*/
 
 libname phone"d:\sasfile";
 data sev1;
@@ -610,7 +610,7 @@ vbox TC/category=g;
 run;
 
 
-/*sas-3 µÄµÚ8Ìâ*/
+/*sas-3 çš„ç¬¬8é¢˜*/
 libname phone"d:\sasfile";
 data sev1;
 set phone.Third;
@@ -619,7 +619,7 @@ histogram tg;
 density tg;                     
 run;
 
-/*sas-3 µÄµÚ9Ìâ*/
+/*sas-3 çš„ç¬¬9é¢˜*/
 libname phone"d:\sasfile";
 data sev1;
 set phone.Third;
@@ -631,16 +631,16 @@ yaxis valueattrs=(size=12) labelattrs=(size=12) label="tg";
 run;
 
 
-/*sas-3 µÄµÚ10Ìâ*/
+/*sas-3 çš„ç¬¬10é¢˜*/
 libname phone"d:\sasfile";
 data sev1;
 set phone.Third;
 proc sql;
-select * from sev1/*´Ë´¦²»¼Ó·ÖºÅ*/
+select * from sev1/*æ­¤å¤„ä¸åŠ åˆ†å·*/
 where center=1 and sex=1;
 quit;
 
-/*sas-3 µÄµÚ11Ìâ*/
+/*sas-3 çš„ç¬¬11é¢˜*/
 libname phone"d:\sasfile";
 data sev1;
 set phone.Third;
@@ -655,10 +655,10 @@ cards;
 run;
 data convert;
 set char;
-sn2=input(sn,10.);                        /*½«sn°´³¤¶ÈÎª10µÄ¸ñÊ½×ªÎªÊıÖµĞÍ */
-date1=input(d1,yymmdd10.);     /*½«d1°´yymmdd8.µÄ¸ñÊ½×ªÎªÊıÖµĞÍ */
-date2=input(d2,date9.);                  /*½«d2°´date9.µÄ¸ñÊ½×ªÎªÊıÖµĞÍ */
-format date1 date2 yymmdd10.;   /*Éè¶¨d1ºÍd2µÄÊä³ö¸ñÊ½Îªyymmdd10. */
+sn2=input(sn,10.);                        /*å°†snæŒ‰é•¿åº¦ä¸º10çš„æ ¼å¼è½¬ä¸ºæ•°å€¼å‹ */
+date1=input(d1,yymmdd10.);     /*å°†d1æŒ‰yymmdd8.çš„æ ¼å¼è½¬ä¸ºæ•°å€¼å‹ */
+date2=input(d2,date9.);                  /*å°†d2æŒ‰date9.çš„æ ¼å¼è½¬ä¸ºæ•°å€¼å‹ */
+format date1 date2 yymmdd10.;   /*è®¾å®šd1å’Œd2çš„è¾“å‡ºæ ¼å¼ä¸ºyymmdd10. */
 ;
 proc print;
 run;
@@ -676,11 +676,11 @@ proc print;
 run;
 
 data iden;
-input iden $18.;                             /*ÊäÈëiden£¬¶¨ÒåÆä³¤¶ÈÎª18*/
+input iden $18.;                             /*è¾“å…¥idenï¼Œå®šä¹‰å…¶é•¿åº¦ä¸º18*/
 if length(iden)=18 then birth=substrn(iden,7,8);
-else birth=substrn(iden,7,6);       /*¸ù¾İidenµÄ×Ö·ûÊıÅĞ¶Ï½ØÈ¡µÄÎ»Êı*/
-birthday=input(birth,yymmdd10.);     /*½«birth×ª»»ÎªÊıÖµĞÍ±äÁ¿*/
-format birthday yymmdd10.;          /*¶¨ÒåbirthdayµÄÊä³ö¸ñÊ½*/
+else birth=substrn(iden,7,6);       /*æ ¹æ®idençš„å­—ç¬¦æ•°åˆ¤æ–­æˆªå–çš„ä½æ•°*/
+birthday=input(birth,yymmdd10.);     /*å°†birthè½¬æ¢ä¸ºæ•°å€¼å‹å˜é‡*/
+format birthday yymmdd10.;          /*å®šä¹‰birthdayçš„è¾“å‡ºæ ¼å¼*/
 cards;
 36053319720613591x
 360533801215791
@@ -692,8 +692,8 @@ run;
 
 data ht;
 input ht$@@;
-ht1=input(compress(ht,"cm","i"),9.);      /*È¥µôhtÖĞµÄc»òm*/
-if find(ht,".","i") then ht1=ht1*100;       /*½«htÖĞ´øÓĞĞ¡ÊıµãµÄÖµ³ËÒÔ100*/
+ht1=input(compress(ht,"cm","i"),9.);      /*å»æ‰htä¸­çš„cæˆ–m*/
+if find(ht,".","i") then ht1=ht1*100;       /*å°†htä¸­å¸¦æœ‰å°æ•°ç‚¹çš„å€¼ä¹˜ä»¥100*/
 cards;
 176Cm 169 195 1.78M 172 1.68m
 ;
@@ -702,19 +702,19 @@ run;
 
 
 data med;
-input id dose&:$30.;              /*dose±äÁ¿°üº¬¿Õ¸ñ£¬Òò´Ë¼ÓÉÏ&·ûºÅ*/
-dose1=tranwrd(dose,"¿Ú·ş","PO");       /*½«¡°¿Ú·ş¡±Ìæ»»Îª¡°PO¡±*/
+input id dose&:$30.;              /*doseå˜é‡åŒ…å«ç©ºæ ¼ï¼Œå› æ­¤åŠ ä¸Š&ç¬¦å·*/
+dose1=tranwrd(dose,"å£æœ","PO");       /*å°†â€œå£æœâ€æ›¿æ¢ä¸ºâ€œPOâ€*/
 cards;
 1 50MG QD PO
 2 30MG TID PO
-4 0.5G QD ¿Ú·ş
+4 0.5G QD å£æœ
 ;
 proc print;
 run;
 
 data dm;
 input start: yymmdd8. end: yymmdd8.; 
-life=yrdif(start,end);                     /*¼ÆËãÁ½¸öÈÕÆÚÖ®¼äµÄÊµ¼ÊÄêÊı */
+life=yrdif(start,end);                     /*è®¡ç®—ä¸¤ä¸ªæ—¥æœŸä¹‹é—´çš„å®é™…å¹´æ•° */
 format start end yymmdd10.; cards;
 20090613 20111225
 20080916 20120106
@@ -727,8 +727,8 @@ run;
 
 data ht;
 input ht$@@;
-ht1=input(compress(ht,"Cm","i"),8.);      /*È¥µôhtÖĞµÄc»òm*/
-if find(ht,".","i") then ht1=ht1*100;       /*½«htÖĞ´øÓĞĞ¡ÊıµãµÄÖµ³ËÒÔ100*/
+ht1=input(compress(ht,"Cm","i"),8.);      /*å»æ‰htä¸­çš„cæˆ–m*/
+if find(ht,".","i") then ht1=ht1*100;       /*å°†htä¸­å¸¦æœ‰å°æ•°ç‚¹çš„å€¼ä¹˜ä»¥100*/
 cards;
 176Cm 169 165 1.78M 175 1.68m
 ;
@@ -736,9 +736,9 @@ proc print;
 run;
 
 /*2020/9/25*/
-/*µÚÒ»Ìâ*/
+/*ç¬¬ä¸€é¢˜*/
 libname phone"d:\sasfile";
-data aa;/*Í³¼ÆÃèÊö*/
+data aa;/*ç»Ÿè®¡æè¿°*/
 set four1;
 proc transpose out=aa1 prefix=id;
 data aa2;
@@ -752,7 +752,7 @@ p75=pctl(75,of id1-id10);
 proc print noobs;
 run;
 
-/*µÚ¶şÌâ*/
+/*ç¬¬äºŒé¢˜*/
 data bb1;
 set four2;
 date=mdy(month,day,year);
@@ -773,7 +773,7 @@ format date1 yymmdds10.;
 proc print;
 run;
 
-/*µÚÈıÌâ*/
+/*ç¬¬ä¸‰é¢˜*/
 libname phone"d:\sasfile";
 data fm;
 set phone.four3;
@@ -785,31 +785,31 @@ mweight=missing(weight);
 proc print;
 run;
 
-/*µÚËÄÌâ*/
+/*ç¬¬å››é¢˜*/
 libname phone"d:\sasfile";
 data cc;
 set phone.four4;
 if length(id)=18 then birth=substrn(id,17,1);
 else birth=substrn(id,14,1);  
-if mod(birth,2)=1 then gender="ÄĞ";
-else gender="Å®";
+if mod(birth,2)=1 then gender="ç”·";
+else gender="å¥³";
 proc print;
 run;      
 
-/*µÚÎåÌâ*/
+/*ç¬¬äº”é¢˜*/
 libname phone"d:\sasfile";
 data dd;
 set phone.four5;
-dd1=compress(telephone,"-",);/*È¥µô"-"*/
+dd1=compress(telephone,"-",);/*å»æ‰"-"*/
 format dd1 20.;
-len1=lengthn(dd1);/*×Ö·û´®µÄ³¤¶È*/
-len2=substrn(dd1,1,4);/*×Ö·û´®µÄÇ°ËÄÎ»*/
+len1=lengthn(dd1);/*å­—ç¬¦ä¸²çš„é•¿åº¦*/
+len2=substrn(dd1,1,4);/*å­—ç¬¦ä¸²çš„å‰å››ä½*/
 if len1=11 then len3=substrn(dd1,5,7);
-else len3=substrn(dd1,5,8);/*ÓëÉÏÒ»ĞĞ¾ùÌáÈ¡ºó7»ò8Î»×Ö·û*/
-len4=lengthn(len3);/*¼ÆËãºó°ë²¿·ÖÊÇ7Î»»¹ÊÇ8Î»*/
+else len3=substrn(dd1,5,8);/*ä¸ä¸Šä¸€è¡Œå‡æå–å7æˆ–8ä½å­—ç¬¦*/
+len4=lengthn(len3);/*è®¡ç®—ååŠéƒ¨åˆ†æ˜¯7ä½è¿˜æ˜¯8ä½*/
 if len4=7 then len5=cats("6",len3);
-else len5=len3;/*ÈôÊÇ7Î»£¬Á¬½Ó×Ö·û"6",·ñÔò²»±ä*/
-fincode=cats(len2,len5);/*Á¬½ÓÇ°°ë²¿·ÖºÍºó°ë²¿·Ö*/
+else len5=len3;/*è‹¥æ˜¯7ä½ï¼Œè¿æ¥å­—ç¬¦"6",å¦åˆ™ä¸å˜*/
+fincode=cats(len2,len5);/*è¿æ¥å‰åŠéƒ¨åˆ†å’ŒååŠéƒ¨åˆ†*/
 proc print;
 run;
 
@@ -827,7 +827,7 @@ proc print;
 run;
 
 
-/*µÚÁùÌâ*/
+/*ç¬¬å…­é¢˜*/
 libname phone"d:\sasfile";
 data ff;
 set phone.four6;
@@ -862,7 +862,7 @@ vbox age/category=gender;
 
 
 data aa;
-do ill="·Î½áºË","ĞÄÔà²¡","Ö×Áö";
+do ill="è‚ºç»“æ ¸","å¿ƒè„ç—…","è‚¿ç˜¤";
 do year="1950","1960","2000";
 input zhi@@;
 output;
@@ -956,3 +956,5 @@ cards;
 proc univariate;
 var d;
 run;
+
+
