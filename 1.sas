@@ -958,3 +958,149 @@ var d;
 run;
 
 
+/*2020/10/30*方差分析*/
+libname phone"d:\sasfile";
+/*单因素方差分析*/
+data test1;
+do g=1 to 3;
+do f=1 to 12;
+input x @@; 
+output;
+end; 
+end;
+cards;
+4.78 4.65 3.98 4.04 3.44 3.77 3.65 4.91 4.79 5.31 4.05 5.16
+4.65 6.92 4.44 6.16 5.99 6.67 5.29 4.7 5.05 6.01 5.67 4.68
+6.8 5.91 7.28 7.51 7.51 7.74 
+8.19 7.15 8.18 5.53 7.79 8.03
+;
+proc print;
+run;
+
+proc univariate data=test1 normal ; 
+class g;
+var x;
+proc print;
+run;
+
+proc glm data=test1;
+class g;
+model x=g;
+means g/hovtest=bartlett lsd snk dunnett('3') ;
+run;
+quit;
+/*随机区组方差分析*/
+data aa;
+do block=1 to 6;
+do dose=1 to 4;
+input weight @@;
+Output;end;end;
+cards;
+82.22 82.30 90.14 112.76 
+110.10 83.17 100.78 140.62
+100.15	110.30	120.55 120.49
+74.20 82.43 100.66 110.31
+80.57 97.90 115.76 103.56
+102.77 81.20 90.30 138.54
+;
+proc print;
+run;
+
+proc glm data=aa;
+class block dose;
+model weight=block dose;
+lsmeans block dose /tdiff adjust=bon;
+run;
+/*析因设计*/
+Data dat4;
+do a = 1 to 2;
+do b = 1 to 2;  
+do i=1 to 3; 
+Input x @@;                             
+output; end;   end; end;
+cards;
+0.416 0.650 0.468      
+0.728 0.806 0.598
+1.456 1.144 1.092 
+1.664 2.028 2.080
+;
+proc print;
+run;
+/*资料的正态性检验*/
+proc univariate normal;
+class a b;
+var x;
+run;
+
+proc glm;
+class a b;
+model x=a b a*b;
+lsmeans a*b/slice=a;
+lsmeans a*b/slice=b;
+lsmeans a*b/tdiff adjust=bon;
+run;
+
+
+/*2020/10/30 方差分析习题*/
+data aa;
+input group number;
+cards;
+1 229
+1 274
+1 310
+2 210
+2 285
+2 117
+3 279
+3 334
+3 303
+3 338
+3 198
+;
+proc print;
+run;
+
+proc univariate data=aa normal;
+class group;
+var number;
+proc print;
+run;
+
+proc glm data=aa;
+class group;
+model number=group;
+means group/hovtest=bartlett lsd snk dunnett('3') ;
+run;
+quit;
+
+/*随机区组方差分析*/
+data bb;
+do sort=1 to 4;
+do dose= 1 to 3;
+input weight@@;
+output;
+end;
+end;
+cards;
+108 112 142
+46 64 116
+70 96 134
+43 65 98
+;
+proc print;
+run;
+
+proc univariate normal;
+class sort;
+var weight;
+proc print;
+run;
+
+proc glm data=bb;
+class sort dose;
+model weight=sort dose;
+lsmeans sort dose/tdiff
+adjust=bon;
+run;
+
+/*析因分析*/
