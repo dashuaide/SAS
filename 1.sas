@@ -1150,3 +1150,134 @@ lsmeans a*b/slice=a;/*输出最小二乘均数，a*b交叉组成四组，故输�
 lsmeans a*b/slice=b;/*slice语句表示控制b比较a的差异，即分别给出b=1和b=2时候的a的两组比较结果*/
 lsmeans a*b/tdiff adjust=bon;/*该语句表示对a*b交叉形成的四组采用bonferroni法进行两两比较*/
 run;
+
+/*卡方检验*/
+Data example1;/*输入四格表数据*/
+DO hp=1 TO 2;              
+DO progression=1 TO 2;
+INPUT f@@;                 
+OUTPUT;
+END;
+END;
+CARDS; 
+1247 164
+443 35
+;
+run;
+
+Proc freq data=example1;
+Weight f;     /*四格表数据加权*/
+Table hp*progression/chisq expected nopercent norow nocol;/*expected指理论频数 nopercent norow nocol不显示总百分比，行百分比，列百分比*/
+Run;
+/*课件上的一道题 关于趋势检验的*/
+data example6;
+input z b f;
+datalines;
+0.5 1 1 
+0.5 2 53
+1.5 1 7 
+1.5 2 113
+2.5 1 25 
+2.5 2 230
+3.5 1 30 
+3.5 2 154
+5 1 32 
+5 2 137
+6.5 1 28 
+6.5 2 110
+;
+run;
+Proc freq data=example6;
+Weight f;
+Tables b*z/trend;
+Run;
+data example6;
+input z b f;
+datalines;
+1 1 1 
+1 2 53
+2 1 7 
+2 2 113
+3 1 25 
+3 2 230
+4 1 30 
+4 2 154
+5 1 32 
+5 2 137
+6 1 28 
+6 2 110
+;
+run;
+Proc freq data=example6;
+Weight f;
+Tables b*z/trend;
+Run;
+
+
+/*卡方检验的例题*/
+/* 2*2四格表 1.	某时某地5岁一下儿童结核感染情况如下，试比较两组是否有差异？
+	阳性	儿童数
+接触组	23	64
+对照组	26	150*/
+data aa;
+ do group=1 to 2;
+ do outcome=1 to 2;
+ input b@@;
+ output;
+ end;
+end;
+cards;
+23 41
+26 124
+;
+proc print;
+run;
+proc freq data=aa;
+weight b;
+tables group*outcome/chisq;
+run;
+
+/*配对四格表资料*/
+/*2.	现有198份痰样本，分别用A、B两种培养基培养结核菌，
+试问两种培养基的阳性培养率是否相等？
+A	B
+	+	-
++	48	24
+-	20	106*/
+data aa;
+do a=1 to 2;
+do b=1 to 2;
+input f@@;
+output;
+end;
+end;
+cards;
+48 24
+20 106
+;
+proc freq data=aa;
+weight f;
+table a*b/agree;
+run;
+
+/*  R*2组的卡方  */
+/*3.	某时某地3岁以下小儿Ⅲ型腺病毒中和抗体阳性率如下，
+试比较三个年龄组的阳性率是否有差异，并进一步分析三组率是否有某种趋势？
+月龄	阳性	阴性
+1~12	7	72
+13~24	8	34
+25~36	17	10*/
+data aa;
+input age group outcome;
+cards;
+6 1 7
+6 2 72
+18 1 8 
+18 2 34
+30 1  17
+30 2 10
+;
+proc freq data=aa;
+weight outcome;
+table age*group/chisq norow nocol nopercent fisher trend;
+run;
