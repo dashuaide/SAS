@@ -1150,7 +1150,7 @@ lsmeans a*b/slice=a;/*输出最小二乘均数，a*b交叉组成四组，故输�
 lsmeans a*b/slice=b;/*slice语句表示控制b比较a的差异，即分别给出b=1和b=2时候的a的两组比较结果*/
 lsmeans a*b/tdiff adjust=bon;/*该语句表示对a*b交叉形成的四组采用bonferroni法进行两两比较*/
 run;
-
+/*2020/11/6*/
 /*卡方检验*/
 Data example1;/*输入四格表数据*/
 DO hp=1 TO 2;              
