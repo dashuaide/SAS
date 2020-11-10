@@ -1124,7 +1124,7 @@ A组应用常规疗法，B组应用常规疗法加服甲药，C组应用常规�
 data test2;
 do a=1 to 2;
  do b=1 to 2;
-  do n=1 to 5;
+  do n=1 to 5;/*添加此变量为了唯一确定四格表中的数据*/
   input x @@;
   output;
   end;
