@@ -65,7 +65,6 @@ format city $6. code $2.;
 cards;
 北京市 110000
 天津市 120000
-上海市 310000
 ;
 proc print;
 run;
