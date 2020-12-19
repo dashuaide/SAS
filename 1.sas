@@ -1534,3 +1534,267 @@ proc corr spearman;
 var i j;
 freq f;
 run;
+
+
+/*2020/12/18 多重线性回归*/
+/*例题1
+时间	存活细菌数
+2	211
+3	197
+4	166
+5	142
+6	106
+7	104
+8	60
+9	56
+10	38
+11	36
+12	32
+13	21
+14	19
+15	15;
+ 要求：分析时间对存活细菌数的影响			
+提示：注意观察残差图			
+*/
+data aa;
+input time num;
+a=time*time;
+output;
+cards;
+2	211
+3	197
+4	166
+5	142
+6	106
+7	104
+8	60
+9	56
+10	38
+11	36
+12	32
+13	21
+14	19
+15	15
+;
+proc sgplot;
+scatter x=time y=num;
+run;
+
+proc univarate normal;
+var num;
+run;
+
+proc reg;
+model num=time a;
+run;
+
+
+/*  例2  
+年份	进口量	国内生产量	存储量	国内消费量
+49	15.9	149.3	4.2	108.1
+50	16.4	161.2	4.1	114.8
+51	19	171.5	3.1	123.2
+52	19.1	175.5	3.1	126.9
+53	18.8	180.8	1.1	132.1
+54	20.4	190.7	2.2	137.7
+55	22.7	202.1	2.1	146
+56	26.5	212.4	5.6	154.1
+57	28.1	226.1	5	162.3
+58	27.6	231.9	5.1	164.3
+59	26.3	239	0.7	167.6
+要求：分析国内生产量、存储量、国内消费量对进口量的影响	提示：注意共线性				
+*/
+
+data aa;
+input year import pro store con;
+yu=pro-con;
+output;
+cards;
+49	15.9	149.3	4.2	108.1
+50	16.4	161.2	4.1	114.8
+51	19	    171.5	3.1	123.2
+52	19.1	175.5	3.1	126.9
+53	18.8	180.8	1.1	132.1
+54	20.4	190.7	2.2	137.7
+55	22.7	202.1	2.1	146
+56	26.5	212.4	5.6	154.1
+57	28.1	226.1	5	162.3
+58	27.6	231.9	5.1	164.3
+59	26.3	239	    0.7	167.6
+;
+/*残差正态性检验*/
+proc reg data=aa;
+model import=pro store con;
+output out=res2 r=r;
+run;
+proc univariate data=res2  normal;
+var r;
+run; 
+/*正态性检验*/
+proc univariate normal;
+var import pro store con;
+run;
+/*散点图探索各自变量与因变量的关系*/
+proc sgplot;
+scatter y=import x=pro;
+scatter y=import x=store;
+scatter y=import x=con;
+run;
+
+/*散点图探索各自变量与因变量的关系*/
+proc gplot data=aa;
+plot import*pro;
+plot import*store;
+plot import*con;
+run;
+/*方差齐性检验*/
+proc reg data=aa;
+model import=pro store con;
+plot student.*p./nomodel nostat;
+run;
+/*单因素分析*/
+proc reg;
+model import=pro;
+model import=store;
+model import=con;
+run;
+/*共线性，强影响点检验*/
+proc reg;
+model import=pro store con/collin tol vif;
+run;
+
+proc reg;
+model import=store con/collin tol vif;
+run;
+
+proc reg;
+model import=pro store/collin tol vif;
+run;
+/*剔除共线性变量*/
+proc reg;
+model import=store yu/collin vif tol;/*可以从总模型中发现Pro变量p值大于0.05*/
+run;
+/*变量间相关性检验*/
+proc corr data=ex2;
+var pro store con;
+run;
+/*剔除共线性变量*/
+proc reg data=ex2;
+model import=store con;
+run;
+
+
+/*河流	氮浓度	农业面积百分比	森林面积百分比	住宅面积百分比	工商业面积百分比
+Olean	26	63	1.2	0.29	1.1
+Cassadaga	29	57	0.7	0.09	1.01
+Oatka	54	26	1.8	0.58	1.9
+Neversink	2	84	1.9	1.98	1
+Hackensack	3	27	29.4	3.11	1.99
+Wappinger	19	61	3.4	0.56	1.42
+Fishkill	16	60	5.6	1.11	2.04
+Honeoye 	40	43	1.3	0.24	1.65
+Susquehanna	28	62	1.1	0.15	1.01
+Chenango	26	60	0.9	0.23	1.21
+Tioughnioga	26	53	0.9	0.18	1.33
+West Canada	15	75	0.7	0.16	0.75
+East Canada	6	84	0.5	0.12	0.73
+Saranac	3	81	0.8	0.35	0.8
+Ausable	2	89	0.7	0.35	0.76
+Black	6	82	0.5	0.15	0.87
+Schoharie	22	70	0.9	0.22	0.8
+Raquette	4	75	0.4	0.18	0.87
+Oswegatchie	21	56	0.5	0.13	0.66
+Cohocton	40	49	1.1	0.13	1.25
+要求：分析农业、森林、住宅、工商业用地面积对氮浓度的影响					
+提示：注意是否有异常点					
+*/
+
+data ex3;
+input n2 farm forest house business;
+cards;
+26	63	1.2	0.29	1.1
+29	57	0.7	0.09	1.01
+54	26	1.8	0.58	1.9
+2	84	1.9	1.98	1
+3	27	29.4	3.11	1.99
+19	61	3.4	0.56	1.42
+16	60	5.6	1.11	2.04
+40	43	1.3	0.24	1.65
+28	62	1.1	0.15	1.01
+26	60	0.9	0.23	1.21
+26	53	0.9	0.18	1.33
+15	75	0.7	0.16	0.75
+6	84	0.5	0.12	0.73
+3	81	0.8	0.35	0.8
+2	89	0.7	0.35	0.76
+6	82	0.5	0.15	0.87
+22	70	0.9	0.22	0.8
+4	75	0.4	0.18	0.87
+21	56	0.5	0.13	0.66
+40	49	1.1	0.13	1.25
+;
+/*散点图探索各自变量与因变量的关系*/
+proc gplot data=ex3;
+plot n2*farm;
+plot n2*forest;
+plot n2*house;
+plot n2*business;
+run;
+/*方差齐性检验*/
+proc reg data=ex3;
+model n2=farm forest house business;
+plot student.*p./nomodel nostat;
+run;
+/*单因素分析*/
+proc reg;
+model n2=farm;
+model n2=forest;
+model n2=house;
+model n2=business;
+run;
+/*共线性，强影响点检验*/
+proc reg;
+model n2=farm forest house business/collin tol vif;
+run;
+quit;
+
+proc reg;
+model  n2=farm forest house business/influence r;
+run;
+proc reg;
+model n2=farm forest business/collin tol vif;
+run;
+
+
+/*参考仅第三题*/
+/*散点图探索各自变量与因变量的关系*/
+proc gplot data=ex3;
+plot n2*farm;
+proc gplot data=ex3;
+plot n2*forest;
+proc gplot data=ex3;
+plot n2*house;
+proc gplot data=ex3;
+plot n2*business;
+run;
+/*残差正态性检验*/
+proc reg data=ex3;
+model n2=farm forest house business;
+output out=res3 r=r;
+run;
+proc univariate data=res3  normal;
+var r;
+run; 
+/*方差齐性检验*/
+proc reg data=ex3;
+model n2=farm forest house business;
+plot student.*p./nomodel nostat;
+run;
+/*共线性，异常点、强影响点检验*/
+proc reg data=ex3;
+model n2=farm forest house business/r influence collin vif tol;
+run;
+/*稳健回归*/
+proc robustreg data=ex3 method=mm;
+model n2=farm forest  business/diagnostics leverage;
+run;
