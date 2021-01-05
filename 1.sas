@@ -1798,3 +1798,190 @@ run;
 proc robustreg data=ex3 method=mm;
 model n2=farm forest  business/diagnostics leverage;
 run;
+
+
+
+/*2021-1-5*/
+/*possion回归*/
+/*例1*/
+data sal;
+input obs years salamanders;
+ln_sal=log(salamanders+0.01);
+cards;
+1 12 3
+2 12 4
+3 32 8
+4 20 6
+5 20 10
+6 27 5
+7 23 4
+8 19 7
+9 23 2
+10 26 8
+11 21 6
+12 3 0
+13 8 2
+14 35 6
+15 2 1
+16 19 5
+17 8 1
+18 25 5
+19 33 4
+20 35 10
+;
+proc print;
+run;
+
+
+ /* plot the raw data */
+
+proc gplot data=sal;
+   title2 'Plot of the raw data';
+   plot salamanders*years;
+run;
+
+proc sgplot;
+scatter  x=years y=salamanders;
+run;
+/*绘制对数变换后的 散点图*/
+proc gplot data=sal;
+   title3 'plot of the logarithmic data' ;
+   plot ln_sal*years;
+run;
+/* Fit a Poisson model */
+proc genmod data=sal;
+model salamanders=years/dist=poisson link=log;
+estimate 'years effect' years 1/exp;
+output out=fit pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+proc genmod data=sal;
+   model salamanders = years / dist=poisson link=log;
+   estimate 'year effect' years 1 /exp;
+run;
+
+/*例2*/
+
+data cancer;
+input city age group count pop; /* msp=1; dfw=2 */
+rate=(count/pop)*100000;
+ln=log(pop);
+ln_rate=log(rate);
+ln_age=log(age);
+lnage_lnage=ln_age*ln_age;
+cards;
+1 20 1   1 172675
+1 30 2  16 123065
+1 40 3  30 96216
+1 50 4  71 92051
+1 60 5 102 72159
+1 70 6 130 54722
+1 80 7 133 32185
+1 90 8  40 8328
+2 20 1   4 181343
+2 30 2  38 146207
+2 40 3 119 121374
+2 50 4 221 111353
+2 60 5 259 83004
+2 70 6 310 55932
+2 80 7 226 29007
+2 90 8  65 7538
+;
+proc print;
+run;
+
+ /* plot the raw data */
+data msp;
+set cancer;
+if city=1;
+run;
+
+proc gplot data=msp;
+   title2 'Plot of the raw data';
+   plot rate*age;
+   plot rate*group;
+run;
+
+proc plot data=msp;
+   title2 'Plot of the raw data';
+   plot rate*age=city;
+run;
+
+proc plot data=msp;
+   plot ln_rate*age=city;
+run;
+
+proc genmod data=msp;  /* city=1 */
+model count = age / dist=poisson link=log offset=ln;
+estimate 'age'  age 1/exp;
+output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+proc genmod data=msp;  /* city=1 */
+model count = age / dist=poisson link=log offset=ln;
+estimate 'age'  age 10/exp;
+output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+proc genmod data=msp;  /* city=1 */
+model count = group / dist=poisson link=log offset=ln;
+estimate 'group'  group 1/exp;
+output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+proc genmod data=msp;
+   title2 'Poisson Regression';
+   model count = ln_age / dist=poisson link=log offset=ln;
+      estimate 'log age'  ln_age 1/exp;
+   output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+/*下面三行的作用 是因为上面的那个模型太好了 反过来做散点图验证模型？*/
+proc gplot data=fit;
+plot rdev*fitmean;/*fit数据集中没有rdev这个变量*/
+run;
+
+/* Association of city with skin cancer */
+proc genmod data=cancer;
+   title2 'Association of city with the risk of skin cancer';
+   class city;
+   model count = city / dist=poisson link=log offset=ln dscale;
+   estimate 'city'  city -1 1/exp;
+   output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+proc genmod data=cancer;
+   class city;
+   model count = city / dist=nb link=log offset=ln;
+   estimate 'city'  city -1 1/exp;
+run;
+
+proc genmod data=cancer;
+   model count = / dist=poisson link=log offset=ln;
+run;
+
+/* Account for overdispersion using Negative Binominal */
+
+proc genmod data=cancer;
+   title2 'Association of city with the risk of skin cancer';
+   class city;
+   model count = city / dist=NB link=log offset=ln;
+   estimate 'city'  city 1 -1/exp;
+   output out=fit  pred=fitmean l=lowerci u=upperci resraw=r;
+run;
+
+/* Account for overdispersion by introducing a dispersion parameter */
+proc genmod data=cancer;
+   title2 'Association of city with the risk of skin cancer';
+   class city;
+   model count = city / dist=Poisson link=log offset=ln dscale;
+   estimate 'city'  city 1 -1/exp;
+   output out=fit  pred=fitmean l=lowerci u=upperci resdev=rdev;
+run;
+
+/* Test for interaction ANCOVA model */
+
+proc genmod data=cancer;
+   title2 'Association of city with the risk of skin cancer';
+   class city;
+   model count = city age age*city/ dist=poisson link=log offset=ln;
+run;
