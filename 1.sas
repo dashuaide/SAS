@@ -2289,3 +2289,58 @@ estimate 'exposure' exposure -1 0 1 0 0/exp;
 estimate 'exposure' exposure -1 0 0 1 0/exp;
 estimate 'exposure' exposure -1 0 0 0 1/exp;
 run;
+
+
+
+
+/*一致性评价和分析*/
+data example1;
+input k gc;
+cards;
+1.22 0
+1.10 0
+2.50 0
+1.66 0
+0.42 0
+2.14 0
+2.24 0
+1.20 0
+1.12 0
+0.96 0
+1.60 0
+2.54 0
+1.12 0
+1.16 0
+1.70 0
+0.86 0
+1.72 0
+1.24 0
+0.86 0
+0.30 0
+3.28 1
+2.34 1
+2.28 1
+1.22 1
+3.84 1
+4.94 1
+1.86 1
+2.10 1
+1.90 1
+1.26 1
+2.04 1
+2.74 1
+1.34 1
+1.06 1
+5.10 1
+1.84 1
+1.72 1
+4.32 1
+3.48 1
+0.84 1
+;
+ods graphics on;
+proc logistic desc plots(only)=roc;
+model gc=k/ctable pprob=.5;
+roc 'ki'k;
+run;
+ods graphics off;
