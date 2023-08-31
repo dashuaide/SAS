@@ -1,0 +1,337 @@
+PROC OPTIONS OPTION=MACRO;
+RUN;
+
+
+%LET macro-variable-name=value;
+
+%LET iterations=10;
+%LET country=New Zealand;
+data se;
+DO i=1 to &iterations;
+TITLE "Addresses in &country";
+end;
+proc print;
+run;
+
+/*宏变量解析出来的是文本（这一点很重要）。*/
+/*宏变量没有字符型或者数值型一说，data步才分为字符型、数值型。*/
+
+/*创建宏模块代码*/
+
+%macro macro-name;
+	macro-text
+%mend macro-name; /*macro-name是可选的，有的话便于宏的调试和维护*/
+
+%macro-name; /*调用宏*/
+
+/*创建带逻辑条件的宏*/
+%IF condition %THEN action;
+	%ELSE %IF condition %THEN action;
+	%ELSE action;
+
+%IF condition %THEN %DO;
+	SAS statements
+%END;
+
+
+%macro dailyreports;
+%IF &SYSDAY = Monday %THEN %DO;
+PROC PRINT DATA = flowersales;
+FORMAT SaleDate WORDDATE18. saleAmount DOLLAR7.;TITLE 'Monday Report: current Flower Sales ' ;
+RUN;
+%END;
+%ELSE %IF &SYSDAY = Tuesday %THEN %DO;
+PROC MEANS DATA = flowersales MEAN MIN MAX;
+CLASS Variety;
+VAR saleQuantity;
+TITLE 'Tuesday Report: Summary of Flower sales' ;RUN;
+%END;
+%MEND dailyreports;
+DATA flowersales ;
+INFILE 'd: \2hong \ TropicalFlowers.dat' ;
+INPUT customerID $4. @6 SaleDate MMDDYY10. @17 Variety $9.
+saleQuantity saleAmount;
+RUN;
+
+%dailyreports
+
+
+IF Age>=18 THEN CALL SYMPUT ("status", "Adult");
+ELSE CALL SYMPUT ("status","Minor");
+
+
+
+%macro show_result(make_ , type_);
+	proc print  data=sashelp.cars;
+	where make = "&make_" and type = "&type_" ;
+	TITLE "Sales as of &SYSDAY &SYSDATE";
+%mend;
+
+%show_result(BMW,SUV);
+
+
+data _null_;
+CALL SYMPUT ('today',
+TRIM(PUT("&sysdate"d,worddate22.)));
+run;
+%put &today;
+
+
+%macro check_condition(val);
+%if &val = 10 %then %return;
+data p;
+x=34.2;
+run;  
+%mend check_condition;  
+%check_condition(14);
+
+
+%macro test(finish);
+   %let i=1;
+   %do %while (&i <&finish);
+      %put the value of i is &i;
+      %let i=%eval(&i+1);
+   %end;
+%mend test;
+%test(5)
+
+/*-------------------------------------------*/
+/*-------------------------------------------*/
+/*-------------------------------------------*/
+
+libname hong "D:\sas\2hong";
+data outprov;
+set hong.adcode;
+where prov="江西省";
+proc print;
+run;
+
+proc export data= outprov 
+outfile= "D:\sas\2hong\江西省.xlsx" 
+dbms=excel replace label;
+sheet="江西省"; 
+run;
+
+
+%macro city(province=);
+data outprov;
+set hong.adcode;
+where prov="&province.";
+run;
+proc export data= outprov
+outfile= "D:\sas\2hong\&province..xlsx" 
+dbms=excel replace label;
+sheet="&province."; 
+%mend city;
+%city(province=北京市)
+%city(province=吉林省)
+
+
+/*程序四*/
+/*以江西省为例：以每个市为一个sheet，列出该市所包含的区/县，所有市在一个EXCEL文件中（11个市有11个sheet），*/
+/*以省命名EXCEL，以市命名sheet。类推到其他省。*/
+
+
+option mprint mlogic;
+/*MERROR | NOMERROR：若开启，当调用找不到的宏时，发出警告【WARNING：没有解析宏“？？？的调用。】*/
+/*SERROR | NOSERROR：若开启，当使用找不到的宏变量时，发出警告【WARNING：没有解析符号引用？？？。】*/
+/*MLOGIC | NOMLOGIC：若开启，在Log中打印有关宏的详细执行情况*/
+/*MPRINT | NOMPRINT：若开启，在Log中打印由宏生成的标准SAS代码*/
+/*SYMBOLGEN | NOSYMBOLGEN：若开启，在Log中打印宏变量的值*/
+
+
+proc sql;
+create table prov2 as
+select distinct prov,city, count(city) as ncount
+from hong.adcode
+group by prov,city
+order by prov;
+quit;
+
+
+%macro citys(province=);
+data prov3;
+set prov2;
+where prov="&province.";
+run;
+
+data _null_;/*data步生成宏变量的方式，call symput()语句，n_prov是宏变量名，n1是宏变量取值*/
+set prov3 nobs=n1;
+call symput("n_prov",n1);/*获得表格sheet的数量*/
+run;
+
+%do i=1 %to &n_prov.;
+data _null_;
+set prov3;
+if _n_=&i.;
+call symputx("city_name",city); /*symputx 和 symput 的区别：symputx 能消除后面参数的左右空格，而 symput只能消除右空格。*/
+run;
+
+data outcity ;
+set hong.adcode;
+if city="&city_name.";
+run;
+
+proc export data=outcity 
+outfile= "D:\sas\2hong\&province..xlsx" 
+dbms=excel replace label;
+sheet="&city_name."; 
+run;
+%end;
+%mend;
+
+%citys(province=黑龙江省)
+
+
+/*-------------------------------------------------*/
+/*用proc sql中的select into子句 实现程序四的内容*/
+option mprint mlogic symbolgen;
+proc sql;
+create table prov2 as
+select distinct prov,city, count(city) as ncount
+from hong.adcode
+group by prov,city
+order by prov ;
+quit;
+%macro citysyq;
+proc sql noprint;
+select prov,city
+into :prov1-:prov415,:city1-:city415
+from prov2;
+quit;
+%do i=1 %to 415;
+data outcity ;
+set hong.adcode;
+if city="&&city&i.";
+run;
+proc export data=outcity outfile= "D:\sas\2hong\&&prov&i...xlsx" dbms=excel replace label;
+sheet="&&city&i."; 
+run;
+%end;
+%mend citysyq;
+
+%citysyq;
+
+
+/*只创建省份？*/
+option mprint mlogic symbolgen;
+proc sql;
+create table prov2 as
+select distinct prov, count(prov) as ncount
+from hong.adcode
+group by prov
+order by prov;
+quit;
+
+%macro citysyq;
+proc sql noprint;
+select prov into :prov1-:prov31 from prov2;
+quit;
+%do i=1 %to 31;
+data outprov ;
+set hong.adcode;
+if prov="&&prov&i.";
+run;
+proc export data=outprov  outfile= "D:\sas\2hong\&&prov&i...xlsx" dbms=excel replace label;
+sheet="&&prov&i."; 
+run;
+%end;
+%mend citysyq;
+
+%citysyq;
+
+/*-------------------------------------------------*/
+/*用proc sql中的select into子句 实现程序4的内容,与上一段的区别是生成n_prov宏变量表示prov2数据集的行数，观测数*/
+option mprint mlogic;
+
+proc sql;
+create table prov2 as
+select distinct prov,city, count(city) as ncount
+from hong.adcode
+group by prov,city
+order by prov ;
+quit;
+
+%macro citymac;
+data _null_;
+set prov2 nobs=n1;
+call symputx("n_prov",n1);*此处要用symputx,若用symput在select into语句解析会因多出来的空格出错;
+run;
+proc sql noprint;
+select prov,city into :prov1-:prov&n_prov,:city1-:city&n_prov from prov2;
+quit;
+%do i=1 %to &n_prov.;
+data outcity ;
+set hong.adcode;
+if city="&&city&i.";
+run;
+proc export data=outcity outfile= "D:\sas\2hong\&&prov&i...xlsx" dbms=excel replace label;
+sheet="&&city&i."; 
+run;
+%end;
+%mend;
+
+%citymac;
+
+
+/*1.通配函数，指能够在SAS宏中引用data步的函数*/
+/*%sysfunc(function(argument<,format>))*/
+
+
+
+%let saslib=work;
+%let sasset=x2;
+data test;
+set sashelp.vcolumn; 
+where libname="%sysfunc(upcase(&saslib.))" and memname="%sysfunc(upcase(&sasset.))" ;                                                       
+run;
+
+
+/*2.宏计算函数*/
+/*%eval  计算算术和逻辑表达式（整数格式）*/
+/*%sysevalf  计算算术和逻辑表达式（浮点格式）*/
+
+/*例子2*/
+%let x=5; *将5做为文本传递给宏变量x;
+%let y=&x+1; *由于%let定义的原因，%let y=&x+1是直接将 &x+1 这个式子定义给了y，+是一个文本;
+%let z=%eval(&x+1); *如果要将&x+1的运算结果定义给另一宏变量, 就需要用%eval函数;
+%put &x &y &z;
+5  5+1  6
+
+/*对比下面的程序*/
+%let x=88;
+data test;
+x=&x.;
+y=&x.+1;
+run;
+/**data步数据集中的变量x,y，不同于宏变量。数据集中 y=&x+1 里的“+”是运算符。*/
+/*上面%let y=&x+1 与data步中 y=&x+1的区别是：
+前者是定义一个宏变量y（是一个文本），
+后者是定义变量y（分字符型、数值型） */
+
+/*3.字符函数*/
+%length
+%index
+%scan
+%substr
+
+/*4.引用函数*/
+%str    /*引用固定文本，不包括%  &*/
+%nrstr  /*引用固定文本，包括%  &*/
+
+
+
+/*宏的日常使用*/
+/*1.定义路径---注意---不需要用双引号;*/
+%let path=P:\SAS 培训\output\;
+/*2.输出的文件含当天日期*/
+
+*将上面的输出文件名加上当天日期,用下面的代码替换proc export中的outfile;
+outfile= "P:\SAS 培训\output\&province.&sysdate..xlsx" 
+outfile= "P:\SAS 培训\output\&province.%sysfunc(today(),yymmdd10.)..xlsx" 
+
+/*3.实现重复文本的替代*/
+
+/*4.融合data步和proc步进行数据处理*/
+
+/*5.使用宏控制语句调用不同程序*/
