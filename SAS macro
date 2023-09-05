@@ -335,3 +335,80 @@ outfile= "P:\SAS 培训\output\&province.%sysfunc(today(),yymmdd10.)..xlsx"
 /*4.融合data步和proc步进行数据处理*/
 
 /*5.使用宏控制语句调用不同程序*/
+
+
+
+/*关于时间的例子 用，用来保存永久宏  设置逻辑库*/
+%PUT &sysdate;
+%PUT &sysdate9;
+%PUT &sysday;
+%PUT &systime;
+%PUT &sysscp;
+%PUT &sysver;
+
+%let a=one;
+%let b=two;
+%let c=%nrstr(&a*&b);
+%put &c;
+%put %qscan(&c,1,*);
+
+%macro time;
+%put the current time is %sysfunc(time(),timeampm.);
+%mend time;
+%time;
+
+/*OPTIONS MSTORED SASMSTORE = 用户指定逻辑库库名称;*/
+/*%MACRO 宏名称 / STORE SOURCE;*/
+/*  宏具体内容*/
+/*%MEND 宏名称;*/
+/*其中，*/
+/*MSTORED 用来：开启宏存储的系统选项；*/
+/*SASMSTORE 指定：宏保存的库；*/
+/*STORE SOURCE 表示：定义的同时存储该宏。 */
+
+/*生成宏 保存在store的逻辑库中*/
+libname store 'D:\SASShare\Data\SAS CODE';
+options mstored  sasmstore = store;
+%macro time/store source;
+	%put the current time is %sysfunc(time(),timeampm.);
+%mend time; 
+
+/*调用宏*/
+libname store 'D:\SASShare\Data\SAS CODE';
+options mstored  sasmstore = store;
+%time
+
+
+/*自定义函数*/
+options mcompilenote = all;
+%macro calc(dsn,var1,var2);
+	proc means data = &dsn;
+		var &var1 &var2;
+	run;
+%mend calc;
+%calc(sashelp.class,age,height); 
+
+
+/*宏中 固定位置参数 的定义与使用*/
+%macro count(opts,start,stop);
+	proc freq data = sashelp.orsales;
+		where year between &start and &stop;
+		table Product_line/&opts;
+			title "Order Between&start and &stop";
+	run;
+%mend count;
+
+%count(nocum,1999,2000) ;
+
+
+
+
+libname store 'D:\SASShare\Data\SAS CODE';
+options mstored  sasmstore = store;
+%macro time/store source;
+	%put the current time is %sysfunc(time(),timeampm.);
+%mend time; 
+
+
+
+
