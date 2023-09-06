@@ -400,9 +400,6 @@ options mcompilenote = all;
 
 %count(nocum,1999,2000) ;
 
-
-
-
 libname store 'D:\SASShare\Data\SAS CODE';
 options mstored  sasmstore = store;
 %macro time/store source;
@@ -410,5 +407,227 @@ options mstored  sasmstore = store;
 %mend time; 
 
 
+/*宏中 固定位置参数 的定义与使用*/
+%macro count(dsn,opts,start,stop);
+	proc freq data = &dsn;
+		where year between &start and &stop;
+		table Product_line/&opts;
+			title "Order Between&start and &stop";
+	run;
+%mend count;
 
+%count(sashelp.orsales,nocum,1999,2000);
+
+/*宏中关键词参数的定义与使用*/
+%macro count(opts=,start=1999,stop=2000);
+proc freq data=sashelp.orsales;
+where year between &start and &stop;
+table product_line/&opts;
+title "order between &start and &stop";
+run;
+%mend count;
+
+%count()
+%count(opts=nocumnopercent)
+%count(stop=2000,opts=nocumnopercent)
+
+
+/*宏中混合性参数定义与使用*/
+%macro count(opts,start=1999,stop=2000);
+proc freq data=sashelp.orsales;
+where year between &start and &stop;
+table product_line/&opts;
+title "order between &start and &stop";
+run;
+%mend count;
+
+%count(2000,nocum,2001)/*报错：ERROR: 找到的位置参数多于定义的个数。*/ 
+%count(nocum,start=2000,stop=2001)
+%count(,stop=2000,stop=2001)/*ERROR: 关键字参数 STOP（传递给宏 COUNT）被两次赋值。*/
+
+%macro outer;
+	%local x;  /*局部宏变量x*/
+	%let x=1;
+	%inner    /*调用宏inner。*/
+%mend outer;
+%macro inner;
+	%local y;
+	%let y=&x;
+%mend inner;
+
+%let x=0;   /*全局宏变量x*/
+%outer;   /*调用宏outer，执行1~5行*/ 
+
+%put _USER_;
+
+/*sas对宏语言处理具有优先级*/
+data order_fact;
+informat order_date ddmmyy10,;
+input order_date order_type quantity retail_price;
+datalines;
+05/01/2013 1 1 117.60
+07/02/2013 2 2 656.6
+07/02/2013 1 2 129.0
+09/02/2013 1 2 36.2
+16/02/2013 2 1 29.4
+27/02/2013 1 5 192.0
+;
+run; 
+
+%let month=2;
+%let year=2013;
+
+data orders;
+keep order_date order_type quantity retail_price;
+set order_fact end=final;
+where year(order_date)=&year and month(order_date)=&month;
+if order_type=3 then number+1;
+if final then do; put number=;if number=0 then do;
+%let foot =no type 3 order;/*编译阶段 生成宏变量foot并赋值*/
+end;
+else do;
+%let foot=some type 3 order;/*编译阶段 生成宏变量foot的值*/
+end;
+end;
+run;
+
+proc print data=orders;
+format order_dare mmyydd10.;
+title "order in &year-&month";
+footnote "&foot";
+run;
+
+
+data crackman4;
+input x y z@;
+datalines;
+1 2 3
+4 5 6
+7 8 9
+10 11 12
+12 13 14
+;
+run;
+data crackman5;
+if _n_=1 then do until(lastobs);
+set crackman4 end=lastobs;
+total+x;
+end;
+set crackman4;
+pct=x/total;
+run;
+proc print;
+run;
+
+
+data orders; 
+keep order_date order type quantityretailprice; 
+set order  fact end= final;
+where year(order_date)=&year and month(orderdate)=&month ;
+if order_type=3then Number+1; 
+if finalthen do; 
+put Number=; 
+if Number=0 then do; 
+call symput('foot','No Type 3 Order');
+end;
+else do; 
+call symput(' foot','Some Type 30rder'); 
+end; 
+end; 
+run; 
+
+proc print data=orders; 
+format order date mmddyy10. ;
+title "0rderin &year-&rmonth"; 
+footnote "&foot"; 
+run; 
+/*使用sYMGET和“&”都能从全局或局部变量表中获取相应的宏变
+/*不同的是:(1)SAS对“&”的处理是在编译阶段；(2)而SYMGET在执行阶段 */
+options mcompilenote=all; 
+%let L1=easy; 
+%let L2=moderate; 
+%let L3=hard;
+data work.student; 
+input name $level$; 
+datalines; 
+Steve L1 
+Jim L2 
+Abby L1 
+ScottL3 
+Peter L2 
+run 
+;
+
+data work.student_level; 
+set work.student; 
+intensity=symget(1eve1);
+run;
+
+proc sql noprint; 
+	select sum(profit) into:total/*通过into生成宏变量total,*该宏变量&total的值为sum(profit)*/ 
+	from sashelp.orsales 
+	where quarter='1999Q1' ;
+quit; 
+%put the total profitof 1991Q1 is:&total; 
+
+proc sql noprint; 
+	select distinct product_line into:al1_product_lines 
+	separated by ',' 
+	from sashelp.orsales; 
+quit; 
+%put all distinct product lines are:&all_product_1ines; 
+/*宏程序中的条件和循环语句*/
+%1et place=Us; 
+%macro empty; 
+	%if &place =US %then %put Not case sensitive; 
+	%else %put macro comparison is case sensitive; 
+%mend; 
+%empty/*调用宏程序*/
+/*结果:macro comparison is case sensitive* /
+/*根据当天系统日期，自动判断生成周报表还是当天报表*/
+%macro reports; 
+ %if &sysmonth=friday  %then %do;/*如果是Firday，生成周报表*/
+	proc means data=dai1y order n sum mean; 
+	where order date between"&date"d-6 and "&date"d; 
+	var retail_price;
+	title "weekly sales:&sysdate9";
+    run;
+ %end;
+ %else %do;
+
+proc sql;
+	select * 
+ from daily_order 
+ where order_date="&sysdate9"d; 
+ title "Daily sales:&sysdate9" 
+quit; 
+%end; 
+%mend reports; 
+%reports; 
+
+/*%D0-%WHILE句式:*/
+/*语法:*/
+/*%D0%WHILE(表达式):*/
+/*文本或宏语句*/
+/*%END;*/
+/*作用:先判断表达式，后执行文本*/
+/*%D0-%UNTIL句式:*/
+/*语法: */
+/*文本或宏语句 */
+/*%END:*/
+/*作用:先执行文本，后判断表达式*/
+
+
+%macro print_multiplies(dsns);   /* 1.先定义了一个宏，编译无误后，存储起来*/
+	%let i=1;
+	%let current_data=%scan(&dsns,&i,' ' );
+	%do %while (current_data ne );   /*判断current_data是否为空。非空，则执行。*/
+		proc print data = t_data;
+		run;
+		%let i=%eval(&i+1);
+		%let current_data=%scan(&dsns,&i,' ' );
+	%end;
+%mend;
+
+%print_multiplies(sashelp.class sashelp.classfit)   /*2. 调用宏*/ 
 
